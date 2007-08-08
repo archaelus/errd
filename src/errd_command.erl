@@ -97,7 +97,7 @@ one_week_test() ->
 %% @doc Converts the given atom to an upper case string.
 %% @end
 to_list(S) when is_atom(S) ->
-    httpd_util:to_upper(atom_to_list(S)).
+    string:to_upper(atom_to_list(S)).
 
 %% @spec join(Separator::string(), list(string())) -> string()
 %% @doc Creates a string by interspersing a list of strings with a separator string. 
