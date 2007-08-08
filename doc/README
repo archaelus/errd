@@ -1,0 +1,11 @@
+The command below uses errd_command:create to generate a #rrd_create
+command based on a filename, a data source name and a data source
+type. It then turns this into a string that can be used to drive rrdtool.
+
+erl -pa ebin -eval 'io:format("~s~n", [errd_command:format(errd_command:create("foo.rrd", "foos", counter))]).' -s init stop
+
+"create foo.rrd --step 300 DS:foos:COUNTER:900:0:U "
+"RRA:AVERAGE:0.5:1:288 RRA:AVERAGE:0.5:12:168 RRA:AVERAGE:0.5:288:365 "
+"RRA:MIN:0.5:1:288 RRA:MIN:0.5:12:168 RRA:MIN:0.5:288:365 "
+"RRA:MAX:0.5:1:288 RRA:MAX:0.5:12:168 RRA:MAX:0.5:288:365 "
+"RRA:HWPREDICT:2016:0.1:0.0035:288"
