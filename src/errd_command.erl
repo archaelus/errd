@@ -10,8 +10,9 @@
 -include_lib("errd_internal.hrl").
 
 %% API
--export([format/1, to_list/1,
-         create/3, join/2,
+-export([format/1,
+         to_list/1,
+         create/3,
          steps/2]).
 
 %%====================================================================
@@ -25,8 +26,8 @@
 %% @end 
 format(#rrd_create{file=File,start_time=undefined,
                    step=Step,ds_defs=DSs,rra_defs=RRAs}) when is_integer(Step) ->
-    Dstr = lists:flatten(join(" ", lists:map(fun (D) -> format(D) end, DSs))),
-    RRAstr = lists:flatten(join(" ", lists:map(fun (D) -> format(D) end, RRAs))),
+    Dstr = lists:flatten(string:join(lists:map(fun (D) -> format(D) end, DSs), " ")),
+    RRAstr = lists:flatten(string:join(lists:map(fun (D) -> format(D) end, RRAs), " ")),
     lists:flatten(io_lib:format("create ~s --step ~p ~s ~s", [File, Step, Dstr, RRAstr]));
 
 format(#rrd_ds{name=Name,type=Type,args=Args}) when is_atom(Type) ->
@@ -99,15 +100,6 @@ one_week_test() ->
 to_list(S) when is_atom(S) ->
     string:to_upper(atom_to_list(S)).
 
-%% @spec join(Separator::string(), list(string())) -> string()
-%% @doc Creates a string by interspersing a list of strings with a separator string. 
-%% @end
-join(Sep,List) ->
-    hd(List) ++
-    lists:foldr(fun (I, Acc) -> lists:append([Sep, I, Acc]) end,
-                "",
-                tl(List)).
-
 join_test() ->
-    ?assert(join(" ", ["This", "is", "a", "test."]) == "This is a test."),
-    ?assert(join(" ", ["test."]) == "test.").
+    ?assert(string:join(["This", "is", "a", "test."], " ") == "This is a test."),
+    ?assert(string:join(["test."], " ") == "test.").
