@@ -12,12 +12,17 @@
 %% Include files
 %%--------------------------------------------------------------------
 -include("errd_internal.hrl").
+-include("eunit.hrl").
 
 %%--------------------------------------------------------------------
 %% External exports
 %%--------------------------------------------------------------------
 -export([start_link/0
-         ,stop/0
+         ,stop/1
+         ,cd/2
+         ,raw/2
+         ,format_raw/3
+         ,command/2
         ]).
 
 %%--------------------------------------------------------------------
@@ -46,15 +51,27 @@
 %% @end
 %%--------------------------------------------------------------------
 start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
+    gen_server:start_link(?MODULE, [], []).
 
 %%--------------------------------------------------------------------
 %% @doc Stops the server.
-%% @spec stop() -> ok
+%% @spec stop(Pid::pid()) -> ok
 %% @end
 %%--------------------------------------------------------------------
-stop() ->
-    gen_server:cast(?SERVER, stop).
+stop(Server) ->
+    gen_server:call(Server, stop).
+
+cd(Server, Directory) ->
+    gen_server:call(Server, {cd, Directory}).
+
+raw(Server, Str) ->
+    gen_server:call(Server, {raw, Str}).
+
+format_raw(Server, Fmt, Args) ->
+    gen_server:call(Server, {raw, Fmt, Args}).
+
+command(Server, Cmd) ->
+    raw(Server, errd_command:format(Cmd)).
 
 %%====================================================================
 %% Server functions
@@ -97,7 +114,9 @@ handle_call({raw, Cmd}, _From, State=#state{rrd_port=Port}) ->
 handle_call({cd, Directory}, _From, State=#state{rrd_port=Port}) ->
     Result = rrd_command(Port, "cd ~s~n", [Directory]),
     {reply, Result, State};
-handle_call(Request, From, State) ->
+handle_call(stop, _From, State) ->
+    {stop, normal, ok, State};
+handle_call(Request, _From, State) ->
     ?WARN("Unexpected call: ~p", [Request]),
     {reply, {error, unknown_call}, State}.
 
@@ -108,8 +127,6 @@ handle_call(Request, From, State) ->
 %%          {noreply, State, Timeout} |
 %%          {stop, Reason, State}            (terminate/2 is called)
 %%--------------------------------------------------------------------
-handle_cast(stop, State) ->
-    {stop, normal, State};
 handle_cast(Msg, State) ->
     ?WARN("Unexpected cast: ~p", [Msg]),
     {noreply, State}.
@@ -133,7 +150,7 @@ handle_info(Info, State) ->
 terminate(_Reason, #state{rrd_port=P}) when is_port(P) ->
     port_close(P),
     ok;
-terminate(Reason, State) ->
+terminate(_Reason, _State) ->
     ok.
 
 %%--------------------------------------------------------------------
@@ -141,45 +158,44 @@ terminate(Reason, State) ->
 %% Purpose: Convert process state when code is changed
 %% Returns: {ok, NewState}
 %%--------------------------------------------------------------------
-code_change(OldVsn, State, Extra) ->
+code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 
 %%====================================================================
 %%% Internal functions
 %%====================================================================
 
-read_config() ->
-    read_config(filelib:is_regular(errd:config_file()),
-                errd:config_file()).
-
-read_config(true, File) ->
-    {ok, Terms} = io:consult(File),
-    Terms;
-read_config(false, File) ->
-    [].
-
 rrd_command(Port, Fmt, Args) ->
     rrd_command(Port, lists:flatten(io_lib:format(Fmt, Args))).
 
 rrd_command(Port, Command) ->
     true = port_command(Port, Command),
-    wait_rrd_command(Port, Command, []).
+    wait_rrd_command(Port, Command, [], []).
 
-wait_rrd_command(Port, Command, SoFar) ->
+wait_rrd_command(Port, Cmd, Lines, SoFar) ->
     receive
+        {P, {data, {eol, "OK " ++ PerfData}}} when P == Port, SoFar == [] ->
+            parse_rrd_response(Cmd, {ok, PerfData}, lists:reverse(Lines));
+        {P, {data, {eol, "ERROR: " ++ Error}}} when P == Port, SoFar == [] ->
+            parse_rrd_response(Cmd, {error, Error}, lists:reverse(Lines));
         {P, {data, {eol, Data}}} when P == Port ->
-            parse_rrd_response(Command, SoFar ++ Data);
+            wait_rrd_command(Port, Cmd, [Data|Lines], SoFar);
         {P, {data, {noeol, Data}}} when P == Port ->
-            wait_rrd_command(Port, Command, SoFar ++ Data)
+            wait_rrd_command(Port, Cmd, Lines, SoFar ++ Data)
     after ?RRD_COMMAND_TIMEOUT ->
-            ?WARN("rrdtool didn't respond to [~s] within ~pms.", [Command, ?RRD_COMMAND_TIMEOUT]),
+            ?WARN("rrdtool didn't respond to [~s] within ~pms.~nPartial data: ~p~n.",
+                  [Cmd, ?RRD_COMMAND_TIMEOUT, SoFar]),
             {error, rrd_timeout}
     end.
-    
 
-parse_rrd_response(Command, "OK " ++ PerfData) ->
-    ?INFO("Command [~s] completed: ~s", [Command, PerfData]),
-    ok;
-parse_rrd_response(Command, "ERROR: " ++ Error) ->
-    ?WARN("Command [~s] failed: ~s", [Command, Error]),
+parse_rrd_response(Cmd, {ok, PerfData}, Lines) ->
+    ?INFO("Command [~s] completed: ~s~n~s~n", [Cmd, PerfData, Lines]),
+    {ok, Lines};
+parse_rrd_response(Cmd, {error, Error}, Lines) ->
+    ?WARN("Command [~s] failed: ~s~n~s~n", [Cmd, Error, Lines]),
     {error, Error}.
+
+rrd_cmd_test() ->
+    {ok, Pid} = ?MODULE:start_link(),
+    ?assertMatch(ok, gen_server:call(Pid, {cd, "/"})),
+    ?MODULE:stop(Pid).
