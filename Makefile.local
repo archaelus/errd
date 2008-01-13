@@ -1,6 +1,14 @@
-APP_NAME=errd
-VSN=0.0.1
-APP_DEPS="sasl"
-
-EUNIT_ROOT=/Users/nem/projects/erlang/eunit
-JUNGERL_ROOT=/Users/nem/projects/erlang/jungerl
+ifneq ($(wildcard /usr/lib/erlang),)
+  ERLANG_ROOT=/usr/lib/erlang
+else
+  ifneq ($(wildcard /Library/DarwinPorts/lib/erlang),)
+    ERLANG_ROOT=/Library/DarwinPorts/lib/erlang
+  endif
+endif
+ifneq ($(wildcard lib/eunit*),)
+  EUNIT_ROOT=$(wildcard lib/eunit*)
+else
+  ifneq ($(wildcard ../eunit),)
+    EUNIT_ROOT=../eunit
+  endif
+endif
