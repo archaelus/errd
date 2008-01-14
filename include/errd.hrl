@@ -14,7 +14,17 @@
 
 -record(rrd_ds, {name,
                  type,
-                 args}).
+                 heartbeat,
+                 min,
+                 max,
+                 args = []}).
 
 -record(rrd_rra, {cf,
                   args}).
+
+-record(rrd, {file,
+              ds = [],
+              rra = [],
+              version,
+              step,
+              last_update}).
