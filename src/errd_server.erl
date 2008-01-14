@@ -189,7 +189,7 @@ wait_rrd_command(Port, Cmd, Lines, SoFar) ->
     end.
 
 parse_rrd_response(Cmd, {ok, PerfData}, Lines) ->
-    ?INFO("Command [~s] completed: ~s~n~s~n", [Cmd, PerfData, Lines]),
+    %?INFO("Command [~s] completed: ~s~n~s~n", [Cmd, PerfData, Lines]),
     {ok, Lines};
 parse_rrd_response(Cmd, {error, Error}, Lines) ->
     ?WARN("Command [~s] failed: ~s~n~s~n", [Cmd, Error, Lines]),
