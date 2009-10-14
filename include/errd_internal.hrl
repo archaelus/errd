@@ -1,5 +1,5 @@
 
--include_lib("eunit.hrl").
+-include_lib("eunit/include/eunit.hrl").
 -include_lib("errd.hrl").
 
 -define(INFO(Format, Args),

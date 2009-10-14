@@ -11,8 +11,8 @@
 %%--------------------------------------------------------------------
 %% Include files
 %%--------------------------------------------------------------------
--include("errd_internal.hrl").
--include("eunit.hrl").
+-include_lib("errd_internal.hrl").
+-include_lib("eunit/include/eunit.hrl").
 
 %%--------------------------------------------------------------------
 %% External exports
