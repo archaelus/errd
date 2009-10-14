@@ -220,3 +220,5 @@ rrd_cmd_test() ->
     {ok, Pid} = ?MODULE:start_link(),
     ?assertMatch(ok, gen_server:call(Pid, {cd, "/"})),
     ?MODULE:stop(Pid).
+
+% vim: set ts=4 sw=4 expandtab:

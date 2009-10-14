@@ -11,3 +11,5 @@
 -define(ERR(Format, Args),
         error_logger:error_report([{where, lists:flatten(io_lib:format("(~p:~p ~p)", [?MODULE, ?LINE, self()]))},
                                    lists:flatten(io_lib:format(Format, Args))])).
+
+% vim: set ts=4 sw=4 expandtab:

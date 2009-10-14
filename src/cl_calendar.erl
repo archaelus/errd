@@ -327,4 +327,4 @@ week(Year, Month, Day) ->
 %%% Internal functions
 %%%===================================================================
 
-
+% vim: set ts=4 sw=4 expandtab:

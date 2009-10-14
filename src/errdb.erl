@@ -71,3 +71,5 @@ errdb_test() ->
                        [test]}},
                  read("priv/test")),
     ?assertMatch(ok, delete("priv/test")).
+
+% vim: set ts=4 sw=4 expandtab:
