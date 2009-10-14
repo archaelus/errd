@@ -7,7 +7,7 @@
 %%%-------------------------------------------------------------------
 -module(errdb).
 
--include_lib("eunit.hrl").
+-include_lib("eunit/include/eunit.hrl").
 
 %% API
 -export([create/1,
