@@ -49,8 +49,7 @@ parse_rra(Rrd, _) ->
     Rrd. %% Not implemented.
 
 parse_ds_name(Rrd, Ds, [Line|Lines]) ->
-    {match, _,_,
-     {{_,_,Name},{_,_,Type}}} = re:first_smatch(Line, "ds\\[(.*)\\].type = \"(.*)\""),
+    {match, [Name, Type]} = re:run(Line, "ds\\[(.*)\\].type = \"(.*)\"", [{capture, all_but_first, list}]),
     parse_ds_min_heartbeat(Rrd, Ds#rrd_ds{name=Name,type=Type},
                            Lines).
 
@@ -86,11 +85,11 @@ parse_ds_unknown_sec(Rrd, Ds, [Line|Lines]) ->
     
 
 re_find(String, Re) ->
-    {match, _,_, {{_,_,Match}}} = re:first_smatch(String, Re),
+    {match, [Match]} = re:run(String, Re, [{capture, all_but_first, list}]),
     Match.
 
 re_find_float(String, Re) ->
-    {match, _,_, {{_,_,Match}}} = re:first_smatch(String, Re),
+    Match = re_find(String, Re),
     case Match of
         "NaN" -> undefined;
         Float -> list_to_float(Float)
