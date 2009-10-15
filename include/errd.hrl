@@ -6,10 +6,10 @@
                      rra_defs = []}).
 
 -record(rrd_update, {file,
+                     time = now,
                      updates}).
 
 -record(rrd_ds_update, {name,
-                        time = now,
                         value = unknown}).
 
 -record(rrd_ds, {name,

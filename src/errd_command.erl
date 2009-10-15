@@ -34,7 +34,21 @@ format(#rrd_ds{name=Name,type=Type,args=Args}) when is_atom(Type) ->
     io_lib:format("DS:~s:~s:~s", [Name, to_list(Type), Args]);
 
 format(#rrd_rra{cf=CF,args=Args}) when is_atom(CF) ->
-    io_lib:format("RRA:~s:~s", [to_list(CF), Args]).
+    io_lib:format("RRA:~s:~s", [to_list(CF), Args]);
+
+format(#rrd_update{file=File, time=Time, updates=Updates}) when is_list(File) ->
+    TimeFmt = case Time of
+        now ->
+            "N";
+        _ ->
+            Time
+    end,
+    {Template, Update} = format(Updates),
+    lists:flatten(io_lib:format("update ~s -t ~s ~s:~s", [File, Template, TimeFmt, Update]));
+
+format([#rrd_ds_update{} | _Tail] = List) ->
+    format_updates(List, [], []).
+
 
 %% @spec (File::string(), DSName::string(), Type) -> #rrd_create{}
 %%   Type = guage | counter | derive | absolute
@@ -99,6 +113,24 @@ one_week_test() ->
 %% @end
 to_list(S) when is_atom(S) ->
     string:to_upper(atom_to_list(S)).
+
+format_updates([], Template, Update) ->
+    {string:join(lists:reverse(Template), ":"), string:join(lists:reverse(Update), ":")};
+format_updates([#rrd_ds_update{name=Name, value=Value} | Tail], Template, Update) ->
+    format_updates(Tail, [Name | Template], [value_to_list(Value) | Update]).
+
+value_to_list(unknown) ->
+    "U";
+value_to_list(Value) when is_list(Value) ->
+    Value;
+value_to_list(Value) when is_atom(Value) ->
+    atom_to_list(Value);
+value_to_list(Value) when is_integer(Value) ->
+    integer_to_list(Value);
+value_to_list(Value) when is_float(Value) ->
+    float_to_list(Value);
+value_to_list(Value) when is_binary(Value) ->
+    binary_to_list(Value).
 
 join_test() ->
     ?assert(string:join(["This", "is", "a", "test."], " ") == "This is a test."),
