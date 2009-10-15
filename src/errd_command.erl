@@ -28,7 +28,7 @@ format(#rrd_create{file=File,start_time=undefined,
                    step=Step,ds_defs=DSs,rra_defs=RRAs}) when is_integer(Step) ->
     Dstr = lists:flatten(string:join(lists:map(fun (D) -> format(D) end, DSs), " ")),
     RRAstr = lists:flatten(string:join(lists:map(fun (D) -> format(D) end, RRAs), " ")),
-    lists:flatten(io_lib:format("create ~s --step ~p ~s ~s", [File, Step, Dstr, RRAstr]));
+    lists:flatten(io_lib:format("create ~s --step ~p ~s ~s~n", [File, Step, Dstr, RRAstr]));
 
 format(#rrd_ds{name=Name,type=Type,args=Args}) when is_atom(Type) ->
     io_lib:format("DS:~s:~s:~s", [Name, to_list(Type), Args]);
@@ -44,7 +44,7 @@ format(#rrd_update{file=File, time=Time, updates=Updates}) when is_list(File) ->
             Time
     end,
     {Template, Update} = format(Updates),
-    lists:flatten(io_lib:format("update ~s -t ~s ~s:~s", [File, Template, TimeFmt, Update]));
+    lists:flatten(io_lib:format("update ~s -t ~s ~s:~s~n", [File, Template, TimeFmt, Update]));
 
 format([#rrd_ds_update{} | _Tail] = List) ->
     format_updates(List, [], []).
