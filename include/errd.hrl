@@ -1,32 +1,32 @@
 
--record(rrd_create, {file,
-                     start_time,
-                     step = 300,
-                     ds_defs = [],
-                     rra_defs = []}).
+-record(rrd_ds_update, {name :: string(),
+                        value = unknown :: any()}).
 
--record(rrd_update, {file,
-                     time = now,
-                     updates}).
+-record(rrd_ds, {name :: string(),
+                 type :: 'gauge' | 'counter' | 'derive' | 'absolute',
+                 heartbeat :: integer(),
+                 min :: integer(),
+                 max :: integer(),
+                 args = [] :: string()}).
 
--record(rrd_ds_update, {name,
-                        value = unknown}).
+-record(rrd_rra, {cf :: 'average' | 'min' | 'max' | 'last',
+                  args :: string()}).
 
--record(rrd_ds, {name,
-                 type,
-                 heartbeat,
-                 min,
-                 max,
-                 args = []}).
+-record(rrd_create, {file :: string(),
+                     start_time :: any(), %% TODO
+                     step = 300 :: pos_integer(),
+                     ds_defs = [] :: [#rrd_ds{}],
+                     rra_defs = [] :: [#rrd_rra{}]}).
 
--record(rrd_rra, {cf,
-                  args}).
+-record(rrd_update, {file :: string(),
+                     time = now :: 'now' | string(),
+                     updates :: [#rrd_ds_update{}]}).
 
--record(rrd, {file,
-              ds = [],
-              rra = [],
-              version,
-              step,
-              last_update}).
+-record(rrd, {file :: string(),
+              ds = [] :: [#rrd_ds{}],
+              rra = [] :: [any()],
+              version :: string(),
+              step :: integer(),
+              last_update :: integer()}).
 
 % vim: set ts=4 sw=4 expandtab:
