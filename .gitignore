@@ -3,3 +3,9 @@ ebin/*.beam
 src/TAGS
 priv/log/*
 erl_crash.dump
+*.swp
+doc/*.html
+doc/edoc-info
+doc/*.png
+doc/*.css
+ebin/*.beam

@@ -65,9 +65,11 @@ delete(PathName) ->
 %%====================================================================
 
 errdb_test() ->
-    ?assertMatch(false, filelib:is_dir("priv/test")),
-    ?assertMatch(ok, create("priv/test", [test])),
-    ?assertMatch({ok, {"priv/test/data.rrd",
+    ?assertMatch(false, filelib:is_dir("../priv/test")),
+    ?assertMatch(ok, create("../priv/test", [test])),
+    ?assertMatch({ok, {"../priv/test/data.rrd",
                        [test]}},
-                 read("priv/test")),
-    ?assertMatch(ok, delete("priv/test")).
+                 read("../priv/test")),
+    ?assertMatch(ok, delete("../priv/test")).
+
+% vim: set ts=4 sw=4 expandtab:

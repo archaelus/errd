@@ -18,9 +18,11 @@
 %% External exports
 %%--------------------------------------------------------------------
 -export([start_link/0
+         ,start/0
          ,stop/1
          ,cd/2
          ,raw/2
+         ,info/2
          ,format_raw/3
          ,command/2
         ]).
@@ -54,6 +56,14 @@ start_link() ->
     gen_server:start_link(?MODULE, [], []).
 
 %%--------------------------------------------------------------------
+%% @doc Starts the server.
+%% @spec start() -> {ok, pid()} | {error, Reason}
+%% @end
+%%--------------------------------------------------------------------
+start() ->
+    gen_server:start(?MODULE, [], []).
+
+%%--------------------------------------------------------------------
 %% @doc Stops the server.
 %% @spec stop(Pid::pid()) -> ok
 %% @end
@@ -63,6 +73,14 @@ stop(Server) ->
 
 cd(Server, Directory) ->
     gen_server:call(Server, {cd, Directory}).
+
+info(Server, Filename) ->
+    case gen_server:call(Server, {info, Filename}) of
+        {ok, Data} ->
+            errd_info:parse(Data);
+        Other ->
+            Other
+    end.
 
 raw(Server, Str) ->
     gen_server:call(Server, {raw, Str}).
@@ -113,6 +131,9 @@ handle_call({raw, Cmd}, _From, State=#state{rrd_port=Port}) ->
     {reply, rrd_command(Port, Cmd), State};
 handle_call({cd, Directory}, _From, State=#state{rrd_port=Port}) ->
     Result = rrd_command(Port, "cd ~s~n", [Directory]),
+    {reply, Result, State};
+handle_call({info, Filename}, _From, State=#state{rrd_port=Port}) ->
+    Result = rrd_command(Port, "info ~s~n", [Filename]),
     {reply, Result, State};
 handle_call(stop, _From, State) ->
     {stop, normal, ok, State};
@@ -199,3 +220,5 @@ rrd_cmd_test() ->
     {ok, Pid} = ?MODULE:start_link(),
     ?assertMatch({ok, []}, gen_server:call(Pid, {cd, "/"})),
     ?MODULE:stop(Pid).
+
+% vim: set ts=4 sw=4 expandtab:
