@@ -86,11 +86,11 @@ parse_ds_unknown_sec(Rrd, Ds, [Line|Lines]) ->
     
 
 re_find(String, Re) ->
-    {match, _,_, {{_,_,Match}}} = re:first_smatch(String, Re),
+    {match, [Match]} = re:run(String, Re, [{capture, first, list}]),
     Match.
 
 re_find_float(String, Re) ->
-    {match, _,_, {{_,_,Match}}} = re:first_smatch(String, Re),
+    Match = re_find(String, Re),
     case Match of
         "NaN" -> undefined;
         Float -> list_to_float(Float)
