@@ -11,7 +11,7 @@
 %%--------------------------------------------------------------------
 %% Include files
 %%--------------------------------------------------------------------
--include_lib("errd_internal.hrl").
+-include("errd_internal.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
 %%--------------------------------------------------------------------
@@ -188,7 +188,7 @@ wait_rrd_command(Port, Cmd, Lines, SoFar) ->
             {error, rrd_timeout}
     end.
 
-parse_rrd_response(Cmd, {ok, PerfData}, Lines) ->
+parse_rrd_response(_Cmd, {ok, _PerfData}, Lines) ->
     %?INFO("Command [~s] completed: ~s~n~s~n", [Cmd, PerfData, Lines]),
     {ok, Lines};
 parse_rrd_response(Cmd, {error, Error}, Lines) ->
