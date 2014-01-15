@@ -13,7 +13,7 @@
                   args :: string()}).
 
 -record(rrd_create, {file :: string(),
-                     start_time :: any(), %% TODO
+                     start_time = now :: 'now' | string(),
                      step = 300 :: pos_integer(),
                      ds_defs = [] :: [#rrd_ds{}],
                      rra_defs = [] :: [#rrd_rra{}]}).
